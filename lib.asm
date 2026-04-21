@@ -4,6 +4,36 @@
 ;       arg1 @ ebp + 8
 
 ;-------------------------------------------------------------------------------
+global dec_to_bin
+dec_to_bin:
+;
+; Description:  returns a nul terminated string representation of the decimal 
+;               value in binary
+; Receives:     arg1: address of the dec val (32b)
+;               arg2: buffer address to store the bin
+;               buffer must be 33 bits big to store the 32b value and nul char
+; Returns:      na
+; Requires:     
+;-------------------------------------------------------------------------------
+
+; end dec_to_bin
+
+;-------------------------------------------------------------------------------
+global dec_to_hex
+dec_to_hex:
+;
+; Description:  returns a nul terminated string representation of the decimal 
+;               value in hex
+; Receives:     arg1: address of the dec val (32b)
+;               arg2: buffer address to store the hex
+;                     buffer must be 9 bits big to store the 8 hex char value and nul char
+; Returns:      na
+; Requires:     
+;-------------------------------------------------------------------------------
+
+; end dec_to_hex
+
+;-------------------------------------------------------------------------------
 global sum_array
 sum_array:
 ;
@@ -124,6 +154,31 @@ to_upper:
     ret
 
 ; end to_upper
+
+;------------------------------------------------------------------------------
+global  to_upper_inclass
+to_upper_inclass:
+;
+; takes in a null-terminated string arg1, converts all lower case alphabet characters 
+;   to upper case. Made in class using alter_char_by_range
+; Receives:     arg1: address of the string 
+; Returns:      na
+; Requires:     alter_char_by_range
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     esp, ebp
+
+    push    DWORD -32               ; offset to upper case
+    push    DWORD 'z'
+    push    DWORD 'a'
+    push    DWORD [ebp + 8]
+    call    alter_char_by_range
+
+
+    mov     esp, ebp                ; practically does this --> add     esp, 16 (aka, clean the args)
+    pop     ebp
+    ret
+; end to upper inclass
 
 ;------------------------------------------------------------------------------
 global  to_lower
@@ -336,6 +391,52 @@ exit:
     ret
     
 ; End  exit -------------------------------------------------------
+
+;------------------------------------------------------------------------------
+alter_char_by_range:
+;
+; Description:  alter the characters of nul terminated string in a range 
+;               based on a character code
+; Receives:     arg1: address of the nul terminated string
+;               arg2: start of the range (inclusive)
+;               arg3: end of the range (inclusive)
+;               arg4: offset
+; Returns:      na
+; Requires:     na
+; Notes:        na
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     esp, ebp
+    push    ebx
+    
+    mov     ecx, [ebp + 12]         ; ecx = start
+    mov     edx, [ebp + 16]         ; edx = end
+    mov     eax, [ebp + 20]         ; eax = offset (arg4)
+    shl     eax, 8                  ; ah = offset
+
+    mov     ebx, [ebp + 8]          ; ebx = string pointer = arg1
+    .while:
+    mov     al, [ebx]               ; al = char unders inspection
+    test    al, al                  ; if al is nul terminater, end loop
+    jz      .wend
+
+    cmp     al, ecx                 ; al < start (arg2)
+    jb      .endif                  
+    cmp     al, edx                 ; al > end (arg3)
+    ja      .endif
+    
+    add     al, ah                  ; add offset
+    mov     [ebx], al               ; store to string
+
+    .endif:
+    inc     ebx
+    jmp     .while
+    .wend:
+
+    pop     ebx
+    pop     ebp
+    ret
+; end alter char by range
 
 section .data   
 endl_char:       db  0x0a

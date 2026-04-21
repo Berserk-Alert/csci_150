@@ -1,0 +1,37 @@
+;------------------------------------------------------------------------------
+global  to_sentence_case
+to_sentence_case:
+;
+; takes in a null-terminated string arg1, converts the first letter to upper case
+;   and the folowing letters to lower case
+; Receives:     arg1: address of the string 
+; Returns:      na
+; Requires:     to_lower
+; Note:         can't distinguish sentences; it will only capitalize the first 
+;               letter of the given string
+;-------------------------------------------------------------------------------
+    push    ebp 
+    mov     ebp, esp
+    push    esi
+    
+    mov     esi, [ebp + 8]          ; arg1 in esi
+
+    ; check if first letter is capitalized
+    cmp     BYTE[esi], 97          
+    jl      .notLowerCase
+    cmp     BYTE[esi], 122
+    jg      .notLowerCase
+    sub     BYTE[esi], 32           
+    .notLowerCase:
+
+    ; call to_lower to fix the following letters
+    inc     esi
+    push    esi
+    call    to_lower
+    add     esp, 4                  ; clean args
+
+    pop     esi
+    mov     esp, ebp
+    pop     ebp
+    ret
+; end to_sentence_case

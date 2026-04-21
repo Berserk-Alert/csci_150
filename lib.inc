@@ -21,6 +21,16 @@ extern to_sentence_case:
 ;-------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
+extern to_upper_inclass:
+;
+; takes in a null-terminated string arg1, converts all lower case alphabet characters 
+;   to upper case. Made in class using alter_char_by_range
+; Receives:     arg1: address of the string 
+; Returns:      na
+; Requires:     alter_char_by_range
+;-------------------------------------------------------------------------------
+
+;------------------------------------------------------------------------------
 extern to_upper:
 ;
 ; takes in a null-terminated string arg1, converts all lower case alphabet characters 
