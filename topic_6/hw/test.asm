@@ -23,7 +23,7 @@ _start:
     call    println
     push    test2
     call    println
-    call    to_upper_inclass
+    call    to_upper
     call    println
     call    endl
     add     esp, 8
