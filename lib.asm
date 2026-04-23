@@ -4,8 +4,8 @@
 ;       arg1 @ ebp + 8
 
 ;-------------------------------------------------------------------------------
-global dec_to_bin
-dec_to_bin:
+;global dec_to_bin
+;dec_to_bin:
 ;
 ; Description:  returns a nul terminated string representation of the decimal 
 ;               value in binary
@@ -19,8 +19,8 @@ dec_to_bin:
 ; end dec_to_bin
 
 ;-------------------------------------------------------------------------------
-global dec_to_hex
-dec_to_hex:
+;global dec_to_hex
+;dec_to_hex:
 ;
 ; Description:  returns a nul terminated string representation of the decimal 
 ;               value in hex
@@ -77,6 +77,29 @@ sum_array:
     ret
  
 ; End sum_array------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+global class_sum_array
+class_sum_array:
+;
+; Description:  sums the values in an array of 32b elements
+; Receives:     arg1: address of the array
+;               arg2: num of elements
+; Returns:      EAX = sum
+; Requires:     rec_array_sum
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+
+    mov     ecx, [ebp + 12]         
+    push    ecx
+    push    DWORD [ebp + 8]
+    call    rec_array_sum
+    add     esp, 8
+
+    pop     ebp 
+    ret
+; end sum_array
 
 ;------------------------------------------------------------------------------
 global  to_sentence_case
@@ -392,6 +415,8 @@ exit:
     
 ; End  exit -------------------------------------------------------
 
+; private methods bellow
+
 ;------------------------------------------------------------------------------
 alter_char_by_range:
 ;
@@ -409,8 +434,8 @@ alter_char_by_range:
     mov     esp, ebp
     push    ebx
     
-    mov     ecx, [ebp + 12]         ; ecx = start
-    mov     edx, [ebp + 16]         ; edx = end
+    mov     cl, BYTE [ebp + 12]         ; ecx = start
+    mov     dl, BYTE [ebp + 16]         ; edx = end
     mov     eax, [ebp + 20]         ; eax = offset (arg4)
     shl     eax, 8                  ; ah = offset
 
@@ -420,9 +445,9 @@ alter_char_by_range:
     test    al, al                  ; if al is nul terminater, end loop
     jz      .wend
 
-    cmp     al, ecx                 ; al < start (arg2)
+    cmp     al, cl                 ; al < start (arg2)
     jb      .endif                  
-    cmp     al, edx                 ; al > end (arg3)
+    cmp     al, dl                 ; al > end (arg3)
     ja      .endif
     
     add     al, ah                  ; add offset
@@ -437,6 +462,39 @@ alter_char_by_range:
     pop     ebp
     ret
 ; end alter char by range
+
+;-------------------------------------------------------------------------------
+rec_array_sum:
+;
+; Description:  recursively sum an array
+; Receives:     arg1: address of the array
+;               arg2: num of elements
+; Returns:      EAX = sum
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    esi 
+
+    mov     eax, 0
+    mov     ecx, [ebp +12]
+    test    ecx, ecx            ; ecx == 0 ?
+    je      .base_case
+
+    .recursive_case:
+    mov     esi, [ebp + 8]      ; esi = 1st value in array
+    add     esi, 4              ; go to next element
+    dec     ecx                 ; dec size
+    push    ecx                 ; push arg2
+    push    esi                 ; push arg1
+    call    rec_array_sum       ; recursion
+    add     esp, 8              ; clean stack
+    add     eax, [esi - 4]      ; sum = &array      (-4 to accound for add 4 in line 490)
+
+    .base_case:
+    pop     esi
+    pop     ebp     
+    ret 
+; end rec_array_sum
 
 section .data   
 endl_char:       db  0x0a

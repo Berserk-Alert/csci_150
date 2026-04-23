@@ -10,7 +10,7 @@ section .text
 _start:
     push    arr_sz
     push    arr
-    call    sum_array
+    call    class_sum_array
     add     esp, 8    
 
     push    BYTE 0

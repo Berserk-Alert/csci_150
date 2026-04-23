@@ -3,7 +3,7 @@
 ; why: 
 ; when: 
 
-%include "../libraries/lib.inc"
+%include "../lib.inc"
 
 global  _start
 section .text
@@ -15,8 +15,7 @@ _start:
     push    buffer          ; arg1
     call    getUserInput
 
-    call    print
-    call    endl
+    call    println
     add     esp, 12
 
     push    DWORD 0

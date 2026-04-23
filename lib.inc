@@ -8,6 +8,16 @@ extern sum_array:
 ; Requires:     Nothing
 ;-------------------------------------------------------------------------------
 
+;-------------------------------------------------------------------------------
+extern class_sum_array:
+;
+; Description:  sums the values in an array of 32b elements
+; Receives:     arg1: address of the array
+;               arg2: num of elements
+; Returns:      EAX = sum
+; Requires:     rec_array_sum
+;-------------------------------------------------------------------------------
+
 ;------------------------------------------------------------------------------
 extern to_sentence_case:
 ;
