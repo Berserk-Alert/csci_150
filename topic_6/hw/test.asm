@@ -3,7 +3,7 @@
 ; why: 
 ; when 4.19.26
 
-%include "../../lib.inc"
+%include "lib.inc"
 
 global  _start
 section .text

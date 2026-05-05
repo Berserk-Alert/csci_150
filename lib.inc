@@ -1,4 +1,30 @@
 ;-------------------------------------------------------------------------------
+extern itoa:
+;
+; Description:  given a 32b unsigned int, return a null termintated string 
+;               representation
+; Receives:     arg1: address FOR the null terminated string 32b
+;               eax: 32b unsigned int value
+; Returns:      EAX: quantity of characters in the string
+; Requires:     
+; Notes:        - arg1 must be an array of 10 bytes long
+; Algo:         Horner's method
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern atoi:
+;
+; Description:  given a null terminated string of a 32b unsigned int, return it as a number
+;               convert the string representation of a number into its number
+; Receives:     arg1: address of the null terminated string 32b
+; Returns:      EAX: unsigned int value
+; Requires:     NULL, BASE10 
+; Notes:        ret 0 for an invalid string
+; Algo:         Horner's method
+;-------------------------------------------------------------------------------
+
+
+;-------------------------------------------------------------------------------
 extern sum_array:
 ;
 ; Description:  sums the values in an array of 32b elements

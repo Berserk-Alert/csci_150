@@ -4,6 +4,107 @@
 ;       arg1 @ ebp + 8
 
 ;-------------------------------------------------------------------------------
+global itoa
+itoa:
+;
+; Description:  given a 32b unsigned int, return a null termintated string 
+;               representation
+; Receives:     arg1: address FOR the null terminated string 32b
+;               arg2: 32b unsigned int value
+; Returns:      EAX: quantity of characters in the string
+; Requires:      
+; Notes:        - arg1 must be an array of 10 bytes long
+; Algo:         Horner's method
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    edi                     ; preserve EDI
+    push    DWORD 10                ; local var storing BASE10
+    push    DWORD 48                ; local var storing DIGIT_OFFSET
+
+    mov     edi, [ebp + 8]          ; EDI = array pointer
+    mov     eax, [ebp + 12]         ; EAX = int value
+
+    ; edge case for 
+    test    eax, eax                ; if EAX != 0
+    jnz     .endif                  ; jump out, else continue
+    inc     eax                     ; string has 1 char, 0 itself
+    mov     BYTE [edi], '0'         ; store '0' in string
+    inc     edi                     ; set up for null termi.
+    jmp     .exit
+    .endif:
+
+    xor     ecx, ecx                ; ECX = char counter
+
+    .while:
+    cmp     eax, 0
+    jz      .wend
+
+    mov     edx, 0                  ; prep EDX for div
+    div     DWORD [ebp - 4]         ; EAX / 10
+    ;add     edx, DWORD [ebp - 4]          
+    add     edx, DIGIT_OFFSET       ; convert to char
+    push    edx                     ; store char in stack
+    inc     ecx                     ; ++char counter
+    jmp     .while
+    .wend:
+
+    mov     eax, ecx                ; for return: quantity of chars in string
+
+    ; pop chars from stack into arg1
+    .loop:
+    pop     edx                     ; char val
+    mov     BYTE [edi], dl               ; store char val (BYTE) into string array
+    inc     edi
+    loop    .loop
+
+    .exit:
+    mov     [edi], BYTE 0                ; add nul terminator
+
+    pop     edi                     ; restore EDI
+    leave
+    ret
+; end itoa
+
+;-------------------------------------------------------------------------------
+global atoi
+atoi:
+;
+; Description:  given a null terminated string of a 32b unsigned int, return it as a number
+;               convert the string representation of a number into its number
+; Receives:     arg1: address of the null terminated string 32b
+; Returns:      EAX: unsigned int value
+; Requires:     NULL, BASE10 
+; Notes:        ret 0 for an invalid string
+; Algo:         Horner's method
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    esi
+
+    mov     eax, 0                  ; eax = accumulate int
+    mov     esi, [ebp + 8]          ; esi = arg1[0]     ; array pointer
+    mov     ecx, DWORD BASE10
+
+    .while:
+    cmp     BYTE[esi], 0            ; break out if we reach the nul char
+    jz      .wend
+
+    mul     ecx                     ; eax *= 10
+    movzx   edx, BYTE[esi]          ; EDX = char code   ; convert the BYTE into a DWORD
+    add     eax, edx                ; eax += edx
+    sub     eax, DWORD DIGIT_OFFSET
+
+    inc     esi
+    jmp     .while
+    .wend:
+
+    pop     esi
+    leave
+    ret
+; end atoi
+
+;-------------------------------------------------------------------------------
 ;global dec_to_bin
 ;dec_to_bin:
 ;
@@ -306,7 +407,7 @@ endl:
 ; just prints a next line character
 ; Receives: na
 ; Returns:  na
-; Requires: na
+; Requires: constant var endl_char = db 0x0a, 
 ;-------------------------------------------------------------------------------
     push    ebp
     mov     ebp, esp
@@ -496,5 +597,10 @@ rec_array_sum:
     ret 
 ; end rec_array_sum
 
+; CONSTANTS
 section .data   
-endl_char:       db  0x0a
+endl_char:      db  0x0a
+NUL:            equ 0
+NULL:           equ NUL         ; incase of typos
+BASE10:         equ 10
+DIGIT_OFFSET:   equ 48
