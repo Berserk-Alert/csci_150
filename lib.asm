@@ -2,6 +2,176 @@
 ; what: library of procedures
 ; note: responsibility: ebx, ebp, esp, edi
 ;       arg1 @ ebp + 8
+section .text
+
+;-------------------------------------------------------------------------------
+global mul64
+mul64:
+;
+; Description:  multiplies a double precision 64b value by a single precision value
+; Receives:     arg1: address of 64b double precision
+;               arg2: multiplier
+; Returns:      product in address of arg1
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    ebx
+
+    mov     ebx, [ebp + 8]
+    mov     ecx, [ebp + 12]
+    mov     eax, ecx
+    mul     DWORD [ebx]
+    push    edx
+    mov     [ebx], eax
+    mov     eax, [ebx + 4]
+    mul     ecx
+    add     eax, [esp]
+    add     esp, 4
+    mov     [ebx + 4], eax
+
+    pop     ebx
+    leave 
+    ret 
+; end mul64
+
+;-------------------------------------------------------------------------------
+;global print_uint_array
+;print_uint_array:
+;
+; Description:  given the address of an unsigned array of dwords, print them on the
+;               console separated by comas 
+; Receives:     arg1: address of the array
+;               arg2: qty of elements
+; Returns:      
+; Requires:     index_of_min_elem, swap
+; Algo:         selection sort
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+global print_uint
+print_uint:
+;
+; Description:  given an unsigned integer, print it in the console, then an end
+;               character 
+; Receives:     eax: the unsigned integer
+; Returns:      
+; Requires:     itoa, println
+; Algo:         
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+
+    ; itoa: 
+
+    leave   
+    ret
+; end print_uint
+
+;-------------------------------------------------------------------------------
+global selection_sort
+selection_sort:
+;
+; Description:  sort an array of unsigned dwords 
+; Receives:     arg1: address of the array
+;               arg2: qty of elements
+; Returns:      
+; Requires:     index_of_min_elem, swap
+; Algo:         selection sort
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    ; preserve
+    push    esi
+    push    edi             
+
+    ; innit addresses
+    mov     ecx, [ebp + 12]             ; ecx = num of elem
+    ; check if only 1 element (edge case)
+    ; cmp     ecx, 1
+    ; jbe     .return
+
+    mov     esi, [ebp + 8]              ; esi = address of first elem, also the array pointer
+    lea     edi, [esi + ((ecx - 1) * 4)]; edi = address of last elem
+
+    push    edi                         ; for call min address
+    .while:  
+    cmp     esi, edi                    
+    jae     .wend                       ; if address of esi >= edi, then break
+    
+    push    esi
+    call    min_address
+    add     esp , 4
+
+    .if:
+    test    eax, esi
+    je      .endif
+
+    .endif:
+
+    add     esi, 4
+    jmp     .while
+    .wend:
+
+    add     esp, 4                      ; dealocate push edi
+    ; restore
+    .return:
+    pop     edi
+    pop     esi
+    leave
+    ret
+; end selection sort
+
+;-------------------------------------------------------------------------------
+min_address:
+;
+; Description:  given the start and end address of an array, return the address
+;               of the smallest value
+; Receives:     arg1: address beginning of the array
+;               arg2: address end of the array
+; Returns:      EAX: address of the min value
+; Requires:      
+; Notes:        - arg1 must be an array of 10 bytes long
+; Algo:         Horner's method
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    ; preserve
+    push    esi
+    push    edi
+
+    ; init addres
+    mov     esi, [ebp + 8]              ; esi = address start
+    mov     edi, [ebp + 12]             ; edi = address end
+    mov     eax, esi                    ; eax = to-be min value
+
+    .while:
+    add     esi, 4
+    cmp     esi, edi
+    ja      .wend                       ; break after looping over the whole array
+
+    mov     edx, [eax]                  ; 
+    .if:
+    cmp     edx, [esi]                  ; one operand must be a reg
+    jbe     .endif
+
+    ; call swap
+    ;push    eax
+    ;push    esi
+    ;call      swap
+    ;add    esp, 4
+    ;pop    eax
+
+    .endif:
+
+    jmp     .while
+    .wend:
+
+    ; restore
+    pop     edi
+    pop     esi
+    leave
+    ret
+; end index_of_min_elem
 
 ;-------------------------------------------------------------------------------
 global itoa

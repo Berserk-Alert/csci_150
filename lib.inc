@@ -1,4 +1,35 @@
 ;-------------------------------------------------------------------------------
+extern mul64:
+;
+; Description:  multiplies a double precision 64b value by a single precision value
+; Receives:     arg1: address of 64b double precision
+;               arg2: multiplier
+; Returns:      product in address of arg1
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern print_uint:
+;
+; Description:  given an unsigned integer, print it in the console, then an end
+;               character 
+; Receives:     eax: the unsigned integer
+; Returns:      
+; Requires:     
+; Algo:         
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern selection_sort:
+;
+; Description:  sort an array of unsigned dwords 
+; Receives:     arg1: address of the array
+;               arg2: qty of elements
+; Returns:      
+; Requires:     index_of_min_elem 
+; Algo:         selection sort
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
 extern itoa:
 ;
 ; Description:  given a 32b unsigned int, return a null termintated string 
