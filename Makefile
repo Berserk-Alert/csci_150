@@ -1,7 +1,7 @@
-FOLDER=topic_9/
-BIN=${FOLDER}main.out
-OBJ=${FOLDER}main.o
-SRC=${FOLDER}main.asm
+FOLDER=topic_9/binSearch
+BIN=${FOLDER}/main.out
+OBJ=${FOLDER}/main.o
+SRC=${FOLDER}/main.asm
 
 LIB=lib.o
 LIB_SRC=lib.asm
