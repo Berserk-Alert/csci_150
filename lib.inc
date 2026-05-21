@@ -1,21 +1,39 @@
 ;-------------------------------------------------------------------------------
+extern RAND_MAX:
+extern rand:
+;
+; Description:  generate a random value [0, RAND_MAX]
+; Receives:     
+; Returns:      EAX = a random value 
+; Requires:     next, mul64, add64
+; Algo:         linear cungruential generator
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern add64:
+;
+; Description:  adds a unsigned 32b value to a unsigned 64b value
+; Receives:     arg1: address of 64b double precision (qword)
+;               arg2: 32b value
+; Returns:      sum stored in the address of arg1
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
 extern mul64:
 ;
 ; Description:  multiplies a double precision 64b value by a single precision value
-; Receives:     arg1: address of 64b double precision
-;               arg2: multiplier
-; Returns:      product in address of arg1
+; Receives:     arg1: multiplier
+;               arg2: the qword
+; Returns:      product stored in the address of arg1
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------
 extern print_uint:
 ;
-; Description:  given an unsigned integer, print it in the console, then an end
-;               character 
-; Receives:     eax: the unsigned integer
+; Description:  given an unsigned integer, print it in the console
+; Receives:     arg1: the integer
 ; Returns:      
-; Requires:     
-; Algo:         
+; Requires:     itoa, print
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------

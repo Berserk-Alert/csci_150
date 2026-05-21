@@ -5,31 +5,112 @@
 section .text
 
 ;-------------------------------------------------------------------------------
+global srand
+srand:
+;
+; Description:  generate a random value [0, RAND_MAX]
+; Receives:     arg1: a unsigned int qword seed
+; Returns:      EAX = a random value 
+; Requires:     next, mul64, add64
+; Algo:         linear cungruential generator
+;-------------------------------------------------------------------------------
+    push    ebp 
+    mov     ebp, esp
+
+    mov     eax, [ebp + 8]
+    mov     [next], eax
+    mov     eax, [ebp + 12]
+    mov     [next + 4], eax
+
+    ; call rand 
+
+    leave   
+    ret
+; end srand
+
+;-------------------------------------------------------------------------------
+global RAND_MAX
+global rand
+rand:
+;
+; Description:  generate a random value [0, RAND_MAX]
+; Receives:     
+; Returns:      EAX = a random value 
+; Requires:     next, mul64, add64
+; Algo:         linear cungruential generator
+;-------------------------------------------------------------------------------
+    .c1:        equ     1103515245
+    .c2:        equ     12345
+    .c3:        equ     16
+    .c4:        equ     0x7fff
+    .RAND_MAX:  equ     32768
+
+    push    ebp
+    mov     ebp, esp
+
+    push    DWORD [next + 4]
+    push    DWORD [next]
+    push    DWORD .c1
+    call    mul64
+
+    mov     DWORD [esp], .c2        ; overwrite .c1 with .c2
+    call    add64
+
+    add     esp, 4
+    pop     DWORD [next]
+    pop     DWORD [next + 4]
+
+    mov     eax, [next]             ; eax = low order
+    shr     eax, .c3    
+    and     eax, .c4 
+
+
+    leave
+    ret
+; end rand
+
+;-------------------------------------------------------------------------------
+global add64
+add64:
+;
+; Description:  adds a unsigned 32b value to a unsigned 64b value
+;               both values are pushed into the arguments, none as addresses
+; Receives:     arg1: 32b value
+;               arg2: the qword
+; Returns:      sum stored in the address of arg1
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+
+    mov     eax, [ebp + 12]              ; eax = low order (dword) of the qword
+    add     eax, [ebp + 8]         ; eax = eax + arg2
+    jnc     .end_carry_flag         ; jump if no overflow from adc
+    inc     DWORD [ebp + 16]
+    mov     [ebp + 12], eax
+    .end_carry_flag:
+
+    leave
+    ret
+; end add64
+
+
+;-------------------------------------------------------------------------------
 global mul64
 mul64:
 ;
 ; Description:  multiplies a double precision 64b value by a single precision value
-; Receives:     arg1: address of 64b double precision
-;               arg2: multiplier
-; Returns:      product in address of arg1
+; Receives:     arg1: multiplier
+;               arg2: the qword
+; Returns:      product stored in the address of arg1
 ;-------------------------------------------------------------------------------
     push    ebp
     mov     ebp, esp
-    push    ebx
 
-    mov     ebx, [ebp + 8]
-    mov     ecx, [ebp + 12]
-    mov     eax, ecx
-    mul     DWORD [ebx]
-    push    edx
-    mov     [ebx], eax
-    mov     eax, [ebx + 4]
-    mul     ecx
-    add     eax, [esp]
-    add     esp, 4
-    mov     [ebx + 4], eax
+    mov     eax, [ebp + 12]         ; ecx = low order of qword
+    mul     DWORD [ebp + 8]
+    mov     [ebp + 12], eax         ; low order qword = low order product
+    add     [ebp + 16], edx    
 
-    pop     ebx
     leave 
     ret 
 ; end mul64
@@ -51,19 +132,25 @@ mul64:
 global print_uint
 print_uint:
 ;
-; Description:  given an unsigned integer, print it in the console, then an end
-;               character 
-; Receives:     eax: the unsigned integer
+; Description:  given an unsigned integer, print it in the console
+; Receives:     arg1: the integer
 ; Returns:      
-; Requires:     itoa, println
-; Algo:         
+; Requires:     itoa, print
 ;-------------------------------------------------------------------------------
     push    ebp
     mov     ebp, esp
+    sub     esp, 11             ; local var buffer for itoa
+    push    ebx
 
-    ; itoa: 
+    lea     ebx, [ebp - 11]
+    push    DWORD [ebp + 8]
+    push    DWORD ebx
+    call    itoa
+    call    print
+    add     esp, 8
 
-    leave   
+    pop     ebx
+    leave
     ret
 ; end print_uint
 
@@ -183,14 +270,14 @@ itoa:
 ;               arg2: 32b unsigned int value
 ; Returns:      EAX: quantity of characters in the string
 ; Requires:      
-; Notes:        - arg1 must be an array of 10 bytes long
+; Notes:        - arg1 must be an array of 11 bytes long
 ; Algo:         Horner's method
 ;-------------------------------------------------------------------------------
     push    ebp
     mov     ebp, esp
-    push    edi                     ; preserve EDI
     push    DWORD 10                ; local var storing BASE10
     push    DWORD 48                ; local var storing DIGIT_OFFSET
+    push    edi                     ; preserve EDI
 
     mov     edi, [ebp + 8]          ; EDI = array pointer
     mov     eax, [ebp + 12]         ; EAX = int value
@@ -212,8 +299,8 @@ itoa:
 
     mov     edx, 0                  ; prep EDX for div
     div     DWORD [ebp - 4]         ; EAX / 10
-    ;add     edx, DWORD [ebp - 4]          
-    add     edx, DIGIT_OFFSET       ; convert to char
+    add     edx, DWORD [ebp - 8]          
+    ;add     edx, DIGIT_OFFSET       ; convert to char
     push    edx                     ; store char in stack
     inc     ecx                     ; ++char counter
     jmp     .while
@@ -767,8 +854,9 @@ rec_array_sum:
     ret 
 ; end rec_array_sum
 
+section .data
+next:           dq  1
 ; CONSTANTS
-section .data   
 endl_char:      db  0x0a
 NUL:            equ 0
 NULL:           equ NUL         ; incase of typos
