@@ -1,4 +1,4 @@
-FOLDER=topic_9/rand
+FOLDER=topic_9/binSearch
 BIN=${FOLDER}/main.out
 OBJ=${FOLDER}/main.o
 SRC=${FOLDER}/main.asm

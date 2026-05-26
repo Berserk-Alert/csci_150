@@ -23,7 +23,7 @@ _start:
     call    print_uint
     call    endl
 
-    mov     esp, ebp
+    add     esp, 12
 
     push    DWORD 0 
     call    exit

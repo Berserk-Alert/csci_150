@@ -5,6 +5,190 @@
 section .text
 
 ;-------------------------------------------------------------------------------
+global binary_search
+binary_search:
+;
+; Description:  public wrapper for rec_binary_search. Sets up initial low/high
+;               address bounds and calls the recursive procedure
+; Receives:     arg1: address of the array
+;               arg2: number of elements in the array
+;               arg3: target value to search for
+; Returns:      eax = address of element if found, -1 if not found
+; Requires:     rec_binary_search
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    ebx
+
+    ; get address of last element
+    mov     ebx, [ebp + 12]         ; ebx = number of elements
+    dec     ebx                     ; ebx = n - 1
+    sal     ebx, 2                  ; ebx = (n-1) * 4
+
+    mov     eax, [ebp + 8]          ; eax = base address of array
+    add     ebx, eax                ; ebx = address of last element
+
+    push    DWORD [ebp + 16]        ; arg3 = target
+    push    ebx                     ; arg2 = address of last element
+    push    eax                     ; arg1 = address of first element
+    call    rec_binary_search
+    add     esp, 12
+
+    pop     ebx
+    leave
+    ret
+; end binary_search -----------------------------------------------------
+
+;-------------------------------------------------------------------------------
+rec_binary_search:
+;
+; Description:  recursively searches a sorted dword array for a target value
+; Receives:     arg1: address of first element
+;               arg2: address of last element
+;               arg3: target value
+; Returns:      eax = address of element if found, -1 if not found
+; Requires:     na
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    esi
+    push    edi
+    push    ebx
+
+    mov     esi, [ebp + 8]          ; esi = low  address
+    mov     edi, [ebp + 12]         ; edi = high address
+    mov     edx, [ebp + 16]         ; edx = target
+
+    ; base case: if low > high, not found
+    cmp     esi, edi
+    jg      .not_found
+
+    ; mid address = low + ((high - low) / 2) rounded to dword boundary
+    mov     eax, edi                ; eax = high address
+    sub     eax, esi                ; eax = high - low
+    shr     eax, 3                  ; eax / 2 and alling offset
+    shl     eax, 2
+    add     eax, esi                ; eax = address of arr[mid]
+    mov     ebx, eax                ; ebx = mid address
+
+    ; compare arr[mid] to target
+    mov     eax, [ebx]              ; eax = value at mid
+    cmp     eax, edx
+    je      .found
+    jg      .go_left
+
+.go_right:
+    ; recurse with low = mid + 4  (next dword)
+    push    edx                     ; arg3 = target
+    push    edi                     ; arg2 = high (unchanged)
+    lea     eax, [ebx + 4]          ; eax = mid + 4
+    push    eax                     ; arg1 = new low address
+    call    rec_binary_search
+    add     esp, 12
+    jmp     .return
+
+.go_left:
+    ; recurse with high = mid - 4  (previous dword)
+    push    edx                     ; arg3 = target
+    lea     eax, [ebx - 4]          ; eax = mid - 4
+    push    eax                     ; arg2 = new high address
+    push    esi                     ; arg1 = low (unchanged)
+    call    rec_binary_search
+    add     esp, 12
+    jmp     .return
+
+.found:
+    mov     eax, ebx                ; return mid address
+    jmp     .return
+
+.not_found:
+    mov     eax, -1
+
+.return:
+    pop     ebx
+    pop     edi
+    pop     esi
+    leave
+    ret
+; end rec_binary_search ---------------------------------------------------
+
+;-------------------------------------------------------------------------------
+global bubble_sort
+bubble_sort:
+;
+; Description:  given the address of an array of dword sized elements and the
+;               size of the array, perform bubble sort least to greatest
+; Receives:     arg1: address of the array
+;               arg2: number of elements in the array
+; Returns:      na
+; Requires:     swap
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    sub     esp, 8              ; [ebp - 4] = bool swapped, [ebp - 8] = pass size
+    push    esi
+    push    edi
+
+    ; initialize
+    mov     esi, [ebp + 8]      ; esi = base address of array
+    mov     ecx, [ebp + 12]     ; ecx = number of elements
+    dec     ecx                 ; pass size starts at n-1 comparisons
+    mov     [ebp - 8], ecx      ; store pass size
+
+    .outer:
+    ; if pass size == 0, array is sorted
+    mov     ecx, [ebp - 8]
+    cmp     ecx, 0
+    jle     .wend
+
+    mov     DWORD [ebp - 4], 0  ; swapped = false
+    mov     esi, [ebp + 8]      ; reset esi to base address
+    mov     ecx, [ebp - 8]      ; ecx = number of comparisons this pass
+
+    .inner:
+    cmp     ecx, 0
+    jle     .inner_end
+
+    mov     edi, esi
+    add     edi, 4              ; edi = address of next element
+
+    mov     eax, [esi]          ; eax = current element
+    cmp     eax, [edi]          ; compare current vs next
+    jle     .no_swap            ; if current <= next, no swap needed
+
+    ; swap current and next
+    push    esi
+    push    edi
+    call    swap
+    add     esp, 8
+
+    mov     DWORD [ebp - 4], 1  ; swapped = true
+
+    .no_swap:
+    add     esi, 4              ; advance to next element
+    dec     ecx
+    jmp     .inner
+
+    .inner_end:
+    ; if no swaps happened, array is sorted — early exit
+    mov     eax, [ebp - 4]
+    test    eax, eax
+    jz      .wend
+
+    ; shrink pass size by 1 (largest element bubbled to end)
+    mov     ecx, [ebp - 8]
+    dec     ecx
+    mov     [ebp - 8], ecx
+    jmp     .outer
+
+    .wend:
+    pop     edi
+    pop     esi
+    leave
+    ret
+; end bubble_sort -----------------------------------------------------
+
+;-------------------------------------------------------------------------------
 global srand
 srand:
 ;
@@ -27,6 +211,33 @@ srand:
     leave   
     ret
 ; end srand
+
+;-------------------------------------------------------------------------------
+global swap
+swap:
+;
+; Description:  given 2 data addresses, swap their values
+; Receives:     arg1: address of value 1
+;               arg2: address of value 2
+;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    esi
+    push    edi
+
+    mov     esi, [ebp + 8]      ; esi = address of arg1
+    mov     edi, [ebp + 12]     ; edi = address of arg2
+
+    mov     eax, [esi]          ; eax = value of arg1
+    mov     edx, [edi]          ; edx = value of arg2
+    mov     [esi], edx
+    mov     [edi], eax
+
+    pop     edi
+    pop     esi
+    leave
+    ret
+; end swap -----------------------------------------------------
 
 ;-------------------------------------------------------------------------------
 global RAND_MAX
@@ -116,17 +327,64 @@ mul64:
 ; end mul64
 
 ;-------------------------------------------------------------------------------
-;global print_uint_array
-;print_uint_array:
+global print_uint_array
+print_uint_array:
 ;
-; Description:  given the address of an unsigned array of dwords, print them on the
-;               console separated by comas 
+; Description:  given the address of an array of dword unsigned integers and
+;               the size of the array
 ; Receives:     arg1: address of the array
-;               arg2: qty of elements
-; Returns:      
-; Requires:     index_of_min_elem, swap
-; Algo:         selection sort
+;               arg2: number of elements in the array
+; Returns:      na
+; Requires:     print_uint
 ;-------------------------------------------------------------------------------
+    push    ebp
+    mov     ebp, esp
+    push    esi
+    push    ebx
+
+    mov     esi, [ebp + 8]      ; esi = base address of array
+    mov     ecx, [ebp + 12]     ; ecx = number of elements
+
+    ; edge case: if array is empty, do nothing
+    cmp     ecx, 0
+    jle     .done
+
+    .loop:
+    cmp     ecx, 0
+    jle     .done
+
+    ; print current element
+    push    ecx                     ; save ecx — print_uint may clobber it
+    push    esi                     ; save esi
+    push    DWORD [esi]             ; arg1 = current element value
+    call    print_uint
+    add     esp, 4                  ; clean up arg
+    pop     esi                     ; restore esi
+    pop     ecx                     ; restore ecx
+
+    ; print ", " separator only if not the last element
+    cmp     ecx, 1
+    je      .no_sep
+
+    push    ecx
+    push    esi
+    push    DWORD separator         ; arg1 = address of ", " string
+    call    print
+    add     esp, 4
+    pop     esi
+    pop     ecx
+
+    .no_sep:
+    add     esi, 4                  ; advance to next element
+    dec     ecx
+    jmp     .loop
+
+    .done:
+    pop     ebx
+    pop     esi
+    leave
+    ret
+; end print_uint_array --------------------------------------------------
 
 ;-------------------------------------------------------------------------------
 global print_uint
@@ -288,7 +546,7 @@ itoa:
     inc     eax                     ; string has 1 char, 0 itself
     mov     BYTE [edi], '0'         ; store '0' in string
     inc     edi                     ; set up for null termi.
-    jmp     .exit
+    jmp     .exit_procedure
     .endif:
 
     xor     ecx, ecx                ; ECX = char counter
@@ -315,7 +573,7 @@ itoa:
     inc     edi
     loop    .loop
 
-    .exit:
+    .exit_procedure:
     mov     [edi], BYTE 0                ; add nul terminator
 
     pop     edi                     ; restore EDI
@@ -856,6 +1114,7 @@ rec_array_sum:
 
 section .data
 next:           dq  1
+separator:      db  ", ", 0     ; separator string
 ; CONSTANTS
 endl_char:      db  0x0a
 NUL:            equ 0

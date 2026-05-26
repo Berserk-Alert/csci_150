@@ -1,4 +1,35 @@
 ;-------------------------------------------------------------------------------
+extern binary_search:
+;
+; Description:  public wrapper for rec_binary_search. Sets up initial low/high
+;               address bounds and calls the recursive procedure
+; Receives:     arg1: address of the array
+;               arg2: number of elements in the array
+;               arg3: target value to search for
+; Returns:      eax = address of element if found, -1 if not found
+; Requires:     rec_binary_search
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern bubble_sort:
+;
+; Description:  given the address of an array of dword sized elements and the
+;               size of the array, perform bubble sort least to greatest
+; Receives:     arg1: address of the array
+;               arg2: number of elements in the array
+; Returns:      na
+; Requires:     swap
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern swap:
+;
+; Description:  given 2 data addresses, swap their values
+; Receives:     arg1: address of value 1
+;               arg2: address of value 2
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
 extern RAND_MAX:
 extern rand:
 ;
@@ -25,6 +56,17 @@ extern mul64:
 ; Receives:     arg1: multiplier
 ;               arg2: the qword
 ; Returns:      product stored in the address of arg1
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern print_uint_array:
+;
+; Description:  given the address of an array of dword unsigned integers and
+;               the size of the array
+; Receives:     arg1: address of the array
+;               arg2: number of elements in the array
+; Returns:      na
+; Requires:     print_uint
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------
