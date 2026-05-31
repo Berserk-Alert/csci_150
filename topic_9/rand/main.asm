@@ -8,34 +8,28 @@
 global  _start  
 section .text
 _start:
-    call    rand
+    mov     ecx, 10
+
+    call    time
+    push    DWORD 0
     push    eax
+    call    srand
+    add     esp, 8
+
+    .loop:
+    push    ecx
+
+    call    rand 
+    push    EAX 
     call    print_uint
     call    endl
+    add     esp, 4
 
-    call    rand
-    push    eax
-    call    print_uint
-    call    endl
-
-    call    rand
-    push    eax
-    call    print_uint
-    call    endl
-
-    add     esp, 12
+    pop     ecx
+    loop    .loop
 
     push    DWORD 0 
     call    exit
-
-    ; test mul 64
-    ; push    DWORD [qw + 4]
-    ; push    DWORD [qw]
-    ; push    DWORD 2
-    ; call    mul64_var1
-    ; add     esp, 4
-    ; pop     DWORD [qw]
-    ; pop     DWORD [qw + 4]
 
 section .bss 
 buffer:     resb    32

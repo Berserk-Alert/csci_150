@@ -21,7 +21,7 @@ _start:
     add     esp, 8
 
     ; test binary search
-    push    DWORD 1                ; arg3 = target value
+    push    DWORD 100                ; arg3 = target value
     push    DWORD array_sz / 4
     push    DWORD array
     call    binary_search

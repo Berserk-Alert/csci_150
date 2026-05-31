@@ -1,8 +1,65 @@
 ; who:  David Zhou Cao
 ; what: library of procedures
-; note: responsibility: ebx, ebp, esp, edi
+; note: responsibility: ebx, ebp, esp, esi, edi
 ;       arg1 @ ebp + 8
+%define     TIME_OP     0x0d
+%define     SYSCALL     int 0x80
+%define     BRK_OP      0x2d
 section .text
+
+;-------------------------------------------------------------------------------
+global free
+free:
+;
+; Description:  deallocates heap space
+; Receives:     arg1: amount of bytes to deallocate
+; Returns:      na
+;-------------------------------------------------------------------------------
+    push	ebp         
+    mov 	ebp, esp
+   
+    ; get current brk
+    push    DWORD [ebp  + 8]    ; malloc(this.arg1)
+    neg     DWORD [esp]         ; make it a negative num
+    call    malloc              ; eax = brk
+
+    leave
+    ret
+; end free -----------------------------------------------------
+
+;-------------------------------------------------------------------------------
+global malloc
+malloc:
+;
+; Description:  Allocate heap space
+; Receives:     arg1: number of bytes to allocated
+; Returns:      eax: address of the allocated space
+;-------------------------------------------------------------------------------
+    push	ebp
+    mov 	ebp, esp
+    push    ebx
+
+    mov     eax, BRK_OP
+    mov     ebx, 0
+    SYSCALL
+    
+    mov     ebx, [ebp + 8]
+
+    test    ebx, ebx
+    jz      .endif
+
+    push    eax
+    add     ebx, eax
+    mov     eax, BRK_OP
+    SYSCALL
+    pop     eax
+
+    .endif:
+
+    pop     ebx
+    leave
+    ret
+; end malloc -----------------------------------------------------
 
 ;-------------------------------------------------------------------------------
 global binary_search
@@ -189,13 +246,57 @@ bubble_sort:
 ; end bubble_sort -----------------------------------------------------
 
 ;-------------------------------------------------------------------------------
+global time_w_ptr
+time_w_ptr:
+;
+; Description:  Return the time as a unsigned integer (number of seconds
+;               elapsed since the Unix epoch, January 1, 1970, at 00:00:00 UTC)
+; Receives:     arg1: address of the dword to store the time
+; Returns:      eax: the time
+;-------------------------------------------------------------------------------
+    push	ebp
+    mov 	ebp, esp
+    push    ebx
+
+    mov     eax, TIME_OP
+    mov     ebx, [ebp + 8]
+    SYSCALL
+
+    pop     ebx
+    leave
+    ret
+; end time_w_ptr -----------------------------------------------------
+
+;-------------------------------------------------------------------------------
+global time
+time:
+;
+; Description:  Return the time as a unsigned integer (number of seconds
+;               elapsed since the Unix epoch, January 1, 1970, at 00:00:00 UTC)
+; Receives:     
+; Returns:      eax: the time
+; Requires:     time_w_ptr
+;-------------------------------------------------------------------------------
+    push	ebp
+    mov 	ebp, esp
+    push    ebx
+
+    push    DWORD 0
+    call    time_w_ptr
+
+    pop     ebx
+    leave
+    ret
+; end time -----------------------------------------------------
+
+;-------------------------------------------------------------------------------
 global srand
 srand:
 ;
 ; Description:  generate a random value [0, RAND_MAX]
 ; Receives:     arg1: a unsigned int qword seed
 ; Returns:      EAX = a random value 
-; Requires:     next, mul64, add64
+; Requires:     next, mul64, add64, rand
 ; Algo:         linear cungruential generator
 ;-------------------------------------------------------------------------------
     push    ebp 
@@ -206,7 +307,8 @@ srand:
     mov     eax, [ebp + 12]
     mov     [next + 4], eax
 
-    ; call rand 
+    ; call rand
+    call    rand 
 
     leave   
     ret
@@ -250,21 +352,20 @@ rand:
 ; Requires:     next, mul64, add64
 ; Algo:         linear cungruential generator
 ;-------------------------------------------------------------------------------
-    .c1:        equ     1103515245
-    .c2:        equ     12345
-    .c3:        equ     16
-    .c4:        equ     0x7fff
-    .RAND_MAX:  equ     32768
+%define c1 1103515245
+%define c2 12345
+%define c3 16
+    .RAND_MAX:  equ     0x7fff      ; 32768
 
     push    ebp
     mov     ebp, esp
 
     push    DWORD [next + 4]
     push    DWORD [next]
-    push    DWORD .c1
+    push    DWORD c1
     call    mul64
 
-    mov     DWORD [esp], .c2        ; overwrite .c1 with .c2
+    mov     DWORD [esp], c2        ; overwrite .c1 with .c2
     call    add64
 
     add     esp, 4
@@ -272,9 +373,8 @@ rand:
     pop     DWORD [next + 4]
 
     mov     eax, [next]             ; eax = low order
-    shr     eax, .c3    
-    and     eax, .c4 
-
+    shr     eax, c3    
+    and     eax, .RAND_MAX
 
     leave
     ret
@@ -1121,3 +1221,4 @@ NUL:            equ 0
 NULL:           equ NUL         ; incase of typos
 BASE10:         equ 10
 DIGIT_OFFSET:   equ 48
+

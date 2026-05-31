@@ -1,4 +1,20 @@
 ;-------------------------------------------------------------------------------
+extern free:
+;
+; Description:  deallocates heap space
+; Receives:     arg1: amount of bytes to deallocate
+; Returns:      na
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern malloc:
+;
+; Description:  Allocate heap space
+; Receives:     arg1: number of bytes to allocated
+; Returns:      eax: address of the allocated space
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
 extern binary_search:
 ;
 ; Description:  public wrapper for rec_binary_search. Sets up initial low/high
@@ -19,6 +35,36 @@ extern bubble_sort:
 ;               arg2: number of elements in the array
 ; Returns:      na
 ; Requires:     swap
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern time_w_ptr:
+;
+; Description:  Return the time as a unsigned integer (number of seconds
+;               elapsed since the Unix epoch, January 1, 1970, at 00:00:00 UTC)
+; Receives:     arg1: address of the dword to store the time
+; Returns:      eax: the time
+;-------------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+extern time:
+;
+; Description:  Return the time as a unsigned integer (number of seconds
+;               elapsed since the Unix epoch, January 1, 1970, at 00:00:00 UTC)
+; Receives:     
+; Returns:      eax: the time
+; Requires:     time_w_ptr
+;-------------------------------------------------------------------------------
+
+
+;-------------------------------------------------------------------------------
+extern srand:
+;
+; Description:  generate a random value [0, RAND_MAX]
+; Receives:     arg1: a unsigned int qword seed
+; Returns:      EAX = a random value 
+; Requires:     next, mul64, add64, rand
+; Algo:         linear cungruential generator
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------
