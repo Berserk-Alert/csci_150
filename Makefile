@@ -1,4 +1,4 @@
-FOLDER=topic_9/binSearch
+FOLDER=topic_12
 BIN=${FOLDER}/main.out
 OBJ=${FOLDER}/main.o
 SRC=${FOLDER}/main.asm
@@ -9,8 +9,8 @@ INC=lib.inc topic_11/stack/stack.inc
 LIB=lib.o 
 STACK=topic_11/stack/stack.o
 
-
 NASM_OPTS=-f elf -g
+
 all: ${BIN}
 ${BIN}: ${LIB} ${OBJ} ${STACK}
 	ld -m elf_i386 -o ${BIN} ${LIB} ${OBJ} ${STACK}
